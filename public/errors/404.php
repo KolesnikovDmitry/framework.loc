@@ -1,34 +1,80 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>404</title>
-        <link rel="stylesheet" href="/errors/css/style.css">
-        <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:400,200italic,200,300,300italic,400italic,600,600italic,700,700italic,900,900italic' rel='stylesheet' type='text/css'>
-        <!-- For-Mobile-Apps-and-Meta-Tags -->
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <meta name="keywords" content="Simple Error Page Widget Responsive, Login Form Web Template, Flat Pricing Tables, Flat Drop-Downs, Sign-Up Web Templates, Flat Web Templates, Login Sign-up Responsive Web Template, Smartphone Compatible Web Template, Free Web Designs for Nokia, Samsung, LG, Sony Ericsson, Motorola Web Design" />
-        <script type="application/x-javascript"> addEventListener("load", function() { setTimeout(hideURLbar, 0); }, false); function hideURLbar(){ window.scrollTo(0,1); } </script>
-        <!-- //For-Mobile-Apps-and-Meta-Tags -->
 
-    </head>
-    <body>
-        <div class="main w3l">
-            <h2>Упс :)</h2>
-            <h1> Ошибка 404</h1>
-            <h3>"Запрашиваемой вами страницы не существует"</h3>
-            <a href="<?=PATH;?>" class="back">На главную страницу</a>
-            <div class="social-icons w3">
-                <ul>
-                    <li><a class="twitter" href="#"></a></li>
-                    <li><a class="facebook" href="#"></a></li>
-                    <li><a class="pinterest" href="#"></a></li>
-                </ul>
-            </div>
-            <div class="footer agileits">
-                <p>Copyright © 2016 Simple Error Page. All Rights Reserved | Design by <a href="http://w3layouts.com" target="_blank">W3layouts</a></p>
-            </div>
+<head>
+    <title>Страница не найдена</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex" />
+    <style type="text/css">
+        html {
+            height: 100%;
+            font-size: 16px;
+        }
+
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #FFF url('errors/images/404.png') right bottom no-repeat;
+        }
+
+        .main {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
+        .row {
+            max-width: 750px;
+            padding: 10px;
+            font-family: Tahoma;
+     
+            color: #565656;
+            margin: 0 auto;
+
+        }
+
+        h1 {
+            margin: 0px;
+            margin-bottom: 30px;
+            font-size: 23px;
+            font-weight: bold
+        }
+
+        p {
+            font-size: 1.0625em;
+        }
+
+        a {
+            color: #27579E;
+            text-decoration: none
+        }
+
+        a:hover {
+            color: #0E1D34;
+            text-decoration: none
+        }
+
+        @media only screen and (max-width: 1000px) {
+            body {
+                background: #FFF !important
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <div class="row">
+            <h1>Ошибка 404</h1>
+            <p>Страница, на которую вы попали, не существует. Вы можете попробывать следующее:</p>
+            <p>- <a href="<?= PATH ?>">Перейти к главной странице сайта</a></p>
+            <p>- Проверить правильность введенного адреса</p>
+            <p>- Вернуться туда, откуда пришли (<i>нажать кнопку «Назад» в своем браузере</i>)</p>
         </div>
+    </div>
+</body>
 
-    </body>
 </html>
