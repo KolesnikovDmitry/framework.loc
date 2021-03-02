@@ -1,5 +1,4 @@
 .idea
 .gitignore
-/nbproject/private/
-error.log
-nbproject
+/nbproject
+/tmp
