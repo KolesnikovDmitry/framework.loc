@@ -3,7 +3,8 @@
 namespace ishop;
 
 //метод реестра
-class Registry {
+class Registry
+{
 
     use TSingletone;
 
@@ -11,12 +12,14 @@ class Registry {
     protected static $properties = [];
 
     //setter
-    public function setProperty($name, $value): void {
+    public function setProperty($name, $value): void
+    {
         self::$properties[$name] = $value;
     }
 
     //getter
-    public  function getProperty($name) {
+    public function getProperty($name)
+    {
         if (isset(self::$properties[$name])) {
             return self::$properties[$name];
         }
@@ -24,7 +27,8 @@ class Registry {
     }
 
     // метод, который будет распечатывать все доступные свойства, в основном будет использоваться для дебага
-    public function getProperties() {
+    public function getProperties()
+    {
         return self::$properties;
     }
 

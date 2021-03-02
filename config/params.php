@@ -6,6 +6,6 @@ return [
     'pagination' => '8',
     'smpt_login' => '',
     'smpt_password' => '',
-    
+
 ];
 
