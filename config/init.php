@@ -1,7 +1,7 @@
 <?php
 
 //если режим разработки , то 1. Если режим пракшена то 0
-define("DEBUG", 0);
+define("DEBUG", 1);
 
 //корень нашего сайта
 // /srv/www/htdocs/pechatoff

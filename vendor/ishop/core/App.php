@@ -21,7 +21,7 @@ class App
         self::$app = Registry::instance();
         $this->getParams();
         new ErrorHandler();
-        Router::dispath($query);
+        Router::dispatch($query);
     }
 
     protected static function getParams()
