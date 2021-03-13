@@ -4,8 +4,8 @@ namespace ishop;
 
 /**
  * Description of App
+ * Класс нашего приложения
  *
- * @author Slash
  */
 class App
 {
@@ -24,7 +24,7 @@ class App
         Router::dispatch($query);
     }
 
-    protected static function getParams()
+    protected function getParams()
     {
         $params = require_once CONF . '/params.php';
         if (!empty($params)) {

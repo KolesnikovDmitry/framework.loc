@@ -7,6 +7,6 @@ namespace app\controllers;
 class PageController
 {
     public static function viewAction(){
-        echo __METHOD__;
+       echo __LINE__;
     }
 }

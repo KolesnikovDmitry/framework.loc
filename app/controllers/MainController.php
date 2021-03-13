@@ -3,10 +3,13 @@
 
 namespace app\controllers;
 
+use ishop\App;
 
-class MainController
+class MainController extends AppController
 {
-    public static function  indexAction() {
-        echo __METHOD__;
+    //public $layout = 'test';
+    public function  indexAction() {
+        //$this->layout='test';
+        $this->setMeta(App::$app->getProperty('shop_name'), 'фото', 'photo');
     }
 }
