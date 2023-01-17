@@ -6,5 +6,10 @@ require_once '../vendor/core/Router.php';
 
 Router::add('posts/add', ['controller'=>'Posts', 'action'=>'add']);
 Router::add('posts/', ['controller'=>'Posts', 'action'=>'index']);
-Router::add(' ', ['controller'=>'Main', 'action'=>'index']);
-debug(Router::getRoutes());
+Router::add('', ['controller'=>'Main', 'action'=>'index']);
+
+if(Router::matchRoute($query)) {
+    debug(Router::getRoute());
+} else {
+    echo "404";
+}
