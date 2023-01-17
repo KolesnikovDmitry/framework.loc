@@ -11,9 +11,7 @@ class Router {
     }
    
 
-
-
-	/**
+    /**
 	 * @return mixed
 	 */
 	public static function getRoutes() {
@@ -27,4 +25,10 @@ class Router {
 	public static function getRoute() {
 		return self::$route;
 	}
+
+	public function matchRoute($url) {
+        foreach (self::$routes as $pattern => $route) {
+
+        }
+    }
 }
