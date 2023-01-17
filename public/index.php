@@ -1,13 +1,9 @@
 <?php
-$query = rtrim($_SERVER['QUERY_STRING'], "/");
+$query = $_SERVER['QUERY_STRING'];
 
-require '../vendor/core/Router.php';
-require '../vendor/libs/function.php';
+require_once "../vendor/libs/function.php";
+require_once '../vendor/core/Router.php';
 
+Router::add('post/add', ['controller'=>'Posts', 'action'=>'add']);
 
-Router::add('^$', ['controller' => 'Main', 'action' => 'index']);
-Router::add('^(?P<controller>[a-z-]+)/?(?P<action>[a-z-]+)?$');
-
-debug(Router::getRoutes());
-
-Router::dispath($query);
+print_r(Router::getRoutes());
