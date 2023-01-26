@@ -1,13 +1,31 @@
 <?php
-$query = rtrim($_SERVER['QUERY_STRING'], '/') ;
 
+error_reporting(-1);
+
+use fw\core\Router;
+
+$query = rtrim($_SERVER['QUERY_STRING'], '/');
+
+
+require_once "../vendor/autoload.php";
 require_once "../vendor/libs/function.php";
-require_once '../vendor/core/Router.php';
-require_once '../app/controllers/Main.php';
-require_once "../app/controllers/Posts.php";
-require_once "../app/controllers/PostsNew.php";
 
 
+define('WWW', __DIR__);
+define('CORE', dirname(__DIR__) . '/vendor/core');
+define('ROOT', dirname(__DIR__));
+define('APP', dirname(__DIR__) . '/app');
+
+
+spl_autoload_register(function($class){
+    $file = ROOT . '/' . str_replace('\\', '/', $class) . '.php';
+    if(file_exists($file)) {
+        require_once $file;
+    }
+});
+Router::add('^pages/?(?P<action>[a-z-]+)?$', ['controller'=>'Posts']);
+
+//default routes
 Router::add('^$', ['controller'=>'Main', 'action'=>'index']);
 Router::add('^(?P<controller>[a-z-]+)/?(?P<action>[a-z-]+)?$');
 
@@ -15,3 +33,4 @@ debug(Router::getRoutes());
 
 Router::dispatch($query);
 
+ 
