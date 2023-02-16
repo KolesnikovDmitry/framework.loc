@@ -4,23 +4,22 @@ namespace app\controllers;
 
 class PostsNew {
    
-    public function indexAction()
-    {
-        echo "PostsNew::index";
+    public function indexAction() {
+        echo __METHOD__;
     }
-
+    
     public function testAction()
     {
-        echo "PostsNew::test";
+      echo __METHOD__;
     }
-
+    
     public function testPageAction()
     {
-        echo "PostsNew::testPage";
+      echo __METHOD__;
     }
-
+    
     public function before() 
     {
-      echo "PostsNew::before";  
+      echo __METHOD__;  
     }
 }

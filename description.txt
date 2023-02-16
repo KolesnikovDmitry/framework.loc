@@ -1,0 +1,451 @@
+Фремворк MVC
+Урок 1
+Структура
+1. app - структура приложения, с которой будет работать пользователь, в ней создадим 3 подпапки
+    controllers
+    models
+    views
+2. public - точка входа(frontcontroller), здесь же будут находится картинки, стили, шрифты, скрипты и т.д.
+    css 
+    images
+    js
+3.vendor - ядро фреймворка и библиотеки
+    core
+    libs
+Все запросы должны перенаправляться на папку public 
+Создадим в папке public index.php - это и будет наша точка входа
+Напишем "echo __FILE__;" - посмотреть путь который у нас. 
+Запросы должны быть перенаправлены на index.php. Для этого мы создадим два файла .htaccess
+
+Первый файл мы создаем в корне , запишем в него
+    AddDefaultCharset utf-8
+    RewriteEngine On - модуль перенаправления
+    RewriteRule ^(.*)$  /public/$1 -правило перенаправления, которое все запросы отправит в папку public.
+    И все, что мы запомнили находится в переменной $1, перенаправляется в папку public
+Второй файл .htaccess мы создаем в папке public , запишем в него два условия:
+    RewriteCond %{REQUEST_FILENAME} !-f   условие перенаправления.
+    Если это не файл, и это не папка, тогда мы выполним следующее условие переадресации
+    RewriteRule (.*) index.php?$1 [L,QSA] - запомним все, что будет находится в строке запроса и отправим на index.php
+    и Get- параметром добавим $1, также добавим флаг L, QSA(позволяет добавлять параметры к уже имеющеся в строке запроса url)
+
+Создаем класс Router . Создадим временно публичный метод конструктора, чтобы убедиться, что он работает. Напишем в 
+него echo "hello world"
+В index.php обратимся к массиву $query = $_SERVER['QUERY_STRING'];
+Нам нужно подключить класс Router - require_once "../vendor/core/Router.php";
+
+Создадим обьект класса $router = new Router;
+Создадим в классе Router два свойства: Все свойства и методы данного класса будут статичными.
+
+    /*
+        Массив, содержащий все маршруты
+        @var $array
+    */
+    protected static $routes = [];
+    
+    /*
+        Текущий маршрут
+        $var $array
+    */
+    protected static $route = [];
+
+    /*
+
+Создадим в классе Router статичный метод add, который будет принимать два параметра, 
+один будет принимать регулярное выражение $regexp ,второй - $route
+
+public static function add($regexp, $route = []) {
+        self::$routes[$regexp] = $route;
+    }
+В качестве ключа таблицы маршрутов, пойдет регулярное выражение, а значение текущий маршрут
+
+Создадим два метода для тестирования, чтобы посмотреть ,что там находится
+
+    public static function getRoutes() {
+            return self::$routes;
+        }
+
+        public static function getRoute() {
+            return self::route;
+        }
+    }
+Уберем создание объекта router в index.php и создадим первое правило
+Router::add('posts/add', ['controller'=>'posts', 'action'=>'add']);
+
+Создадим функцию function.php для дебага в папке vendor, подпапки libs и родключим его в index.php
+
+    function debug($arr) {
+        echo '<pre>' . print_r($arr, true) . '</pre>';
+    }
+
+Для примера добавим еще несколько вариантов, например:
+Router::add('posts/', ['controller' => 'Posts', 'action'=>'index']);
+Router::add('', ['controller' => 'Main', 'action'=>'index']);
+
+Для сравнение строки url с ключом в маршруте создадим статичный метод, в качестве параметра будет приниматься запрос 
+url(переменная query). Перебираем в цикле наши свойства routes(таблицу маршрутов) и получаем 
+из нее отдельно регулярное выражение($pattern) и отдельно маршрут, который соответствует этому регулярному выражению
+Делаем простую проверку сравнения: Проверяем , если у нас переменная $url == $pattern, заполняем наше свойство $route.
+И вернем работу нашей функции, возращая true. Если совпадение найдено не было,запрошен не 
+существующий адрес, вернем false
+   public static function matchRoute($url) {
+        foreach (self::$routes as $pattern => $route) {
+            if ($url == $pattern) {
+                self::$route = $route;
+                return true;
+            } 
+        }
+        return false;
+    }
+Сделаем проверку на совпадение маршрутов
+    if(Router::matchRoute($query)){
+        debug(Router::getRoute());
+    } else {
+        echo '404';
+    }
+Решим проблему концевого слэша и допишем функцию rtrim, не забыв при этом убрать в маршруте posts/, слеш
+$query = rtrim($_SERVER['QUERY_STRING'], '/');
+
+
+Урок 2
+Класс Router 
+Сделаем правило в index.php, которое провалидирует пустую строку
+    Router::add('^$',['controller' => 'Main', 'action'=>'index']); -где в регулярном выражении написаны символы начала 
+    и конца строки, что означает пустую строку.
+Второе правило должно валидировать все остальные url-адреса, где первый сегмент это контроллер, а второй экшен
+    Router::add('([a-z-]+)/([a-z-]+)'); - где в регулярном выражении разрешаем
+    вводим латиницу , знак тире и один или больше символов, и также для экшена
+    Нужно эти правила запомнить, потому что мы их мы собираемся хранить в route
+Закомментирум пока эти правила:
+//Router::add('posts/add', ['controller' => 'Posts', 'action'=>'add']);
+//Router::add('posts', ['controller' => 'Posts', 'action'=>'index']);
+//Router::add('', ['controller' => 'Main', 'action'=>'index']);
+
+Пропишем в Router:
+Используем в сравнении функцию preg_match. Первым параметром идет паттерн. Вторым url-адрес. 
+Третьий для запоминания $matches. Проверим, что же у нас попадает в $matches - debug($matches);
+
+Сделаем именованные ключи в регулярном выражении, и сделаем необязательный слеш и action 
+И если action у нас нет, тогда мы сделаем в качестве такового index 
+   Router::add('^(?P<controller>[a-z-]+)/?(?P<action>[a-z-]+)?$');
+
+Опишем в Router метод dispatch, на вход принимает url. И здесь этот метод вызывает matchRoute
+Если метод matchRoute возвращает true, зачит адрес найден. В противном случае используем 
+http_response_code(404), и подключим страницу 404.html
+    public static function dispatch($url) {
+           if (self::matchRoute($url)) {
+               echo 'ok';
+           } else {
+               http_response_code(404);
+               include '404.html';
+           }
+       }
+Создадим в папке public 404.html
+    <!DOCTYPE html>
+    <html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>404 Not found</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <h1 style="text-align: center;">404 Страница не найдена....</h1>
+    </body>
+    </html>
+В index.php вызовем метод dispatch - Router::dispatch($query);
+В пустой массив root метода matchRoute необходимо положить контроллер и action. 
+Мы пройдемся по нашему массиву matches и возьмем значения только тех ключей, которые являются строковыми.
+Если у нас в ключ попадается строковое значение, тогда нам такая строка подходит.
+    public static function matchRoute($url) {
+        foreach (self::$routes as $pattern => $route) {
+            if (preg_match("#$pattern#i", $url, $matches)) {
+                debug($matches);
+                foreach($matches as $key => $value) {
+                    if (is_string($key)) {
+                        $route[$key] = $value;
+                    }
+                }
+                self::$route = $route;
+                debug($route);
+                return true;
+            } 
+        }
+        return false;
+    }
+Однако, если в адресной строке опустить action, то его нет в выводе. И если action нет, то по умолчанию
+он должен быть index
+      public static function matchRoute($url) {
+        foreach (self::$routes as $pattern => $route) {
+            if (preg_match("#$pattern#i", $url, $matches)) {
+                foreach($matches as $key => $value) {
+                    if (is_string($key)) {
+                        $route[$key] = $value;
+                    }
+                }
+                if (!isset($route['action'])) {
+                    $route['action'] = 'index';
+                }
+                self::$route = $route;
+                debug(self::$route);
+                return true;
+            } 
+        }
+        return false;
+    }
+
+Теперь переходим к методу dispach. У нас в этом методе доступен self::route. И отсюда возьмем контроллер
+    $controller = self::$route['controller'];
+Далее проверяем,если у нас есть такой класс в $controller, тогда мы его должны подключить.
+В противном случае выведем сообщение, что контроллер не найден.
+      public static function dispatch($url) {
+        if (self::matchRoute($url)) {
+            $controller = self::$route['controller'];
+            if(class_exists($controller)){
+                echo 'ok';
+            } else {
+                echo "Контроллер <b>$controller</b> не найден";
+            }
+        } else {
+            http_response_code(404);
+            include '404.html';
+        } 
+    }
+Соответственно, создадим свой первый контроллер в папке app/controllers - Posts.php 
+И еще Main.php. И временно подключим их в index.php
+    require_once '../app/controllers/Posts.php';
+    require_once '../app/controllers/Main.php';
+Создадим еще класс PostsNew . И он должен быть найден при обращении в адресной строке posts-new
+Сделаем в Router метод upperCamelCase. На вход будет пинимать имя класса $name
+Распечатаем его:
+    protected static function upperCamelCase($name) {
+        debug($name);
+    }
+   И вставим вывод в метод dispatch - self::upperCamelCase($controller);
+Уберем тире с имени контроллера - $name = str_replace('-', ' ',$name);
+Сделаем заглавными первые буквы двух слов  - $name = ucwords($name);
+Заменим пробел, чтобы соединить два слова - $name = str_replace(' ', '', $name);
+Теперь сократим код в одну строку  - $name = str_replace(' ', '', ucwords(str_replace('-', ' ',$name)));
+
+И вернем результат:
+protected static function upperCamelCase($name) {
+    return $name = str_replace(' ', '', ucwords(str_replace('-', ' ',$name)));
+}
+
+В Routere в методе dispatch исправим 
+    $controller = self::$route['controller'] на 
+    $controller = self::upperCamelCase(self::$route['controller']);
+Создадим в папке app/controllers контроллер PostsNew
+В методе dispatch создадим обьект данного класса - $cObj = new $controller;
+Чтобы убедиться, что все работает создадим временно в PostsNew конструктор
+    class PostsNew {
+
+        public function __construct() {
+            echo __METHOD__;
+            } 
+        }
+    }
+Обьект контроллера, мы успешно создали,теперь необходимо вызвать метод данного контроллера. 
+Поступим, так же, как и с контроллером. В переменную action получим из self::route, необходимое нам 
+значение. И проверим, если у нас существует, такой метод $action у класса $cObj, то выведем его 
+$cObj->$action(); 
+Иначе напишем в Routre метода dispach: 
+    if(method_exists($cObj, $action )) {
+        $cObj->$action();
+    } else {
+        echo "Метод <b>$controller::$action</b> не найден";
+    }
+Давайте в PostsNew создадим еще пару методов
+     public function test()
+    {
+      echo __METHOD__;
+    }
+    
+    public function testPage()
+    {
+      echo __METHOD__;
+    }
+Чтобы, вызвать testPage, надо нам убрать дефис и за ним следующую букву сделать заглавной.
+Создадим еще один метод lowerCamelCase. Первую букву будет делать маленькой все остальные с большой.
+    protected static function lowerCamelCase($name) {
+        return lcfirst(self::upperCamelCase($name));
+    }
+В dispatch пропишем - $action = self::lowerCamelCase(self::$route['action']);
+В PostsNew создадим еще метод: before, но нужно сделать, чтобы пользователь не мог его вызвать.
+К каждому методу, который пользователь сможет вызывать, добавим постфикс Action 
+А в Routere метода dispatch сконкатеннируем . "Action";
+$action = self::lowerCamelCase(self::$route['action']) . "Action";
+
+Сделаем константы:
+define('WWW', __DIR__ ); - будет указывать на текущую папку public C:\OSPanel\domains\framework.loc\public
+define('CORE', dirname(__DIR__). 'vendor/core'); - ядро сайта. С помощью функции dirname, поднимемся в папку выше.
+Все константы будут заканчиваться без концевого слеша. C:\OSPanel\domains\framework.locvendor/core
+define('ROOTE', dirname(__DIR__)); - корень сайта. C:\OSPanel\domains\framework.loc
+define('APP', dirname(__DIR__) . '/app'); - C:\OSPanel\domains\framework.loc/app
+
+
+Далее, сделаем функцию автозагрузки
+spl_autoload_register(function($class){
+    $file = APP . "/controllers/$class.php";
+});
+И проверим, если у нас есть такой файл, то мы его подключаем
+
+В index.php пропишем еще маршрут 
+Router::add('^pages/(?P<action>[a-z-]+)?$',['controller' => 'Posts']);
+
+
+
+
+Урок 3. Автозагрузка. Контроллер фреймворка. Пространство имен.
+Закомментируем класс Router. И посмотрим, что же у нас ищется в автозагрузчике
+spl_autoload_register(function($class){
+    debug($class);
+    $file = APP . "/controllers/$class.php";
+    if(is_file($file)){
+        require_once $file;
+    }
+});
+В Routere запишем - namespace vendor\core;
+В index.php пропишем use vendor\core\Router;
+Нам остается только в функции автозагрузки заменить обратные слеши на прямые и доканкатенировать
+.php(т.е. дописать расширение) 
+    spl_autoload_register(function($class){
+        $file = ROOTE . '/' . str_replace('\\', '/', $class) . ".php";
+        if(is_file($file)){
+            require_once $file;
+        }
+    });
+ 
+Включим контроль ошибок в index.php 
+error_reporting(-1);
+
+Допишем пространство имен в метод dispatche - $controller = 'app\controllers\\' . self::upperCamelCase(self::$route['controller']);
+И пропишем пространство имен в контроллерах
+
+namespace app\controllers;
+
+Нам надо подключить шаблон(повторяющуся часть каждой страницы(head, body, стили, скриптов)) 
+и вид(некая изменяющаяся часть каждого сайта(контент
+Под каждый вид в папке views создадим папку по имени контроллера
+Создадим папку Posts и PostsNew в views. Виды будут называться по имени action. То есть в 
+папке views/Posts создадим два файла index.php и test.php
+В index.php напишем <h1>INDEX</h1>
+В test.php напишем <h1>TEST</h1>
+
+Немного исправим методы dispatch и matchRoute, потому как контроллер выходит с маленькой буквы.
+     public static function matchRoute($url) {
+        foreach (self::$routes as $pattern => $route) {
+            if (preg_match("#$pattern#i", $url, $matches)) {
+                foreach($matches as $key => $value) {
+                    if (is_string($key)) {
+                        $route[$key] = $value;
+                    }
+                }
+                if (!isset($route['action'])) {
+                    $route['action'] = 'index';
+                }
+                $route['controller'] = self::upperCamelCase($route['controller']); 
+                self::$route = $route;
+                return true;
+            } 
+        }
+        return false;
+    }
+
+
+    public static function dispatch($url) {
+        if (self::matchRoute($url)) {
+            $controller = 'app\controllers\\' . self::$route['controller'];
+            debug(self::$route);
+            if(class_exists($controller)){
+                $cObj = new $controller;
+                $action = self::lowerCamelCase(self::$route['action']) . "Action";
+                if(method_exists($cObj, $action )) {
+                    $cObj->$action();
+                } else {
+                    echo "Метод <b>$controller::$action</b> не найден";
+                }
+            } else {
+                echo "Контроллер <b>$controller</b> не найден";
+            }
+        } else {
+            http_response_code(404);
+            include '404.html';
+        } 
+    }
+У нас теперь в маршруте, содержится вся информация, для подключения нужного вида. И теперь нужно
+передать информацию в наш контроллер. Нужно в обьект класса $cObj передать self::$route
+$cObj = new $controller(self::$route);
+Соответственно, нам понадобится некое свойство $route = [];
+Создадим, также публичный метод __construct, и будет выводить то, что приходит в наш конструктор параметром
+при создании обьекта.
+    public function __construct($route) {
+            $this->route = $route;
+    }
+И теперь, у нас в debug($this->$route) содержится вся необходимая информация
+И поэтому нам необходим некий базовый класс контроллера, который будет находиться в ядре core
+Создадим папку в core / base и ней создадим абстрактный класс Controller и весь конструктор  с Pouter.php
+перенесем в класс Controller
+    public $route = [];
+    
+    public function __construct($route) {
+        $this->route = $route;
+    }
+И нам остается только наследоваться от базового класса Controller
+    namespace app\controllers;
+    use vendor\core\base\Controller;
+
+    class Posts extends Controller{
+
+        public function indexAction() {
+            echo __METHOD__;
+        }
+
+        public function testAction() {
+            debug($this->route);
+            echo __METHOD__;
+        }
+    }
+Сделаем у классов контроллера тоже самое. Сделаем временно подключение вида
+    abstract class Controller {
+        public $route = [];
+        public $view;
+
+        public function __construct($route) {
+            $this->route = $route;
+            $this->view = $route['action'];
+            include APP . "/views/{$route['controller']}/{$this->view}.php";
+        }
+    }
+Напишем в Page:
+    namespace app\controllers;
+    use vendor\core\base\Controller;
+
+    class Page extends Controller{
+
+        public function viewAction() {
+            debug($this->route);
+            echo __METHOD__;
+        }
+    }
+Сейчас у нас фактически один action отвечает за одну страницу. Это не всегда удобно
+Добавим и изменим правила 
+Router::add('^page/(?P<action>[a-z-]+)/(?P<alias>[a-z-]+)$',['controller' => 'Page']);
+Уберем средний сегмент view. Напишем еще правило, в котором action уже убираем и оставляем только
+alias, но action при этом должен быть именно view
+Router::add('^page/(?P<alias>[a-z-]+)$',['controller' => 'Page', 'action' => 'view']);
+Далее нам нужно разделить явные get-параметры от неявных и отрезать их.
+Введем в адресную строку - http://framework.loc/page/view/about?page=1&val=2&val=3
+И в index.php после подключения функций напишем debug($_GET);, где получим вывод
+Array
+(
+    [page/view/about] => неявные get- параметры
+    [page] => 1 - явные get-параметры
+    [val] => 3
+)
+Создадим в Router метод removeQueryString, который будет обрезать возможные get-параметры
+На вход он принимает url- адрес. Распечатаем его 
+  protected static function removeQueryString($url) {
+        debug($url);
+        return $url;
+    }
+В методе dispatch распечатаем его - $url = self::removeQueryString($url);
+

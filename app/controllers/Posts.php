@@ -1,19 +1,18 @@
 <?php
 
 namespace app\controllers;
-use vendor\fw\core\base\Controller;
+
+use vendor\core\base\Controller;
+
 
 class Posts extends Controller{
     
- 
-    public function indexAction()
-    {
-        echo "Posts::Index";
+    public function indexAction() {
+        echo __METHOD__;
     }
-
-    public function testAction()
-    {
+    
+    public function testAction() {
         debug($this->route);
-        echo "Posts::test";
+        echo __METHOD__;
     }
 }
