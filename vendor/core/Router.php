@@ -48,7 +48,7 @@ class Router {
      */
     public static function matchRoute($url) {
         foreach (self::$routes as $pattern => $route) {
-            if (preg_match("#$pattern#i", $url, $matches)) {
+            if (preg_match("#$pattern#i", strval($url), $matches)) {
                 foreach($matches as $key => $value) {
                     if (is_string($key)) {
                         $route[$key] = $value;
@@ -72,7 +72,7 @@ class Router {
      */
     public static function dispatch($url) {
         $url = self::removeQueryString($url);
-        if (self::matchRoute($url)) {
+        if (self::matchRoute ($url)) {
             $controller = 'app\controllers\\' . self::$route['controller'];
             if(class_exists($controller)){
                 $cObj = new $controller(self::$route);
@@ -100,8 +100,14 @@ class Router {
     }
     
     protected static function removeQueryString($url) {
-        debug($url);
-        return $url;
+        if($url) {
+            $params = explode('&', $url, 2);
+            if (false === strpos($params[0], '=')) {
+                return rtrim($params[0], '/');
+            } else {
+                return '';  
+            }
+        }
     }
     
 }

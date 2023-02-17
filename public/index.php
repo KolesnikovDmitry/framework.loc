@@ -3,7 +3,7 @@ error_reporting(-1);
 
 use vendor\core\Router;
 
-$query = rtrim($_SERVER['QUERY_STRING'], '/');
+$query = rtrim(filter_input(INPUT_SERVER, 'QUERY_STRING'), '/');
 
 define('WWW', __DIR__ ); //public
 define('CORE', dirname(__DIR__). 'vendor/core'); //core
@@ -13,7 +13,6 @@ define('APP', dirname(__DIR__) . '/app'); //app
 
 require_once '../vendor/libs/function.php';
 
-debug($_GET);
 spl_autoload_register(function($class){
     $file = ROOTE . '/' . str_replace('\\', '/', $class) . ".php";
     if(is_file($file)){

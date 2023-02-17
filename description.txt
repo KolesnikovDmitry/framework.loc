@@ -448,4 +448,33 @@ Array
         return $url;
     }
 В методе dispatch распечатаем его - $url = self::removeQueryString($url);
+Найдем строку по разделителю:
+  protected static function removeQueryString($url) {
+        if($url) {
+            $params = explode('&', $url, 2);
+            if(false === strpos($params[0], ))
+        }
+        //debug($url);
+        return $url;
+    }
 
+Во всем случаях по-возможности мы должны взять только неявные get-параметры
+ protected static function removeQueryString($url) {
+        if($url) {
+            $params = explode('&', $url, 2);
+            if (false === strpos($params[0], '=')) {
+                return rtrim($params[0], '/');
+            } else {
+                return '';  
+            }
+        }
+    }
+
+Выведем в методе dispatch - var_dump($url); Для версии php 8 и выше нужно в matchRoute привести к строковой
+функции strval($url), чтобы пустая строка не приводилась к null 
+
+
+
+
+Урок 4. Виды и шаблоны
+Создадим базовый класс вида vendor/core/base/view.php
