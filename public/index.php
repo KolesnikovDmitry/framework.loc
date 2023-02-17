@@ -9,6 +9,7 @@ define('WWW', __DIR__ ); //public
 define('CORE', dirname(__DIR__). 'vendor/core'); //core
 define('ROOTE', dirname(__DIR__)); //framework.loc
 define('APP', dirname(__DIR__) . '/app'); //app
+define('LAYOUT', 'default');//default template
 
 
 require_once '../vendor/libs/function.php';
