@@ -502,14 +502,134 @@ Array
 Понадобится метод конструктора. Когда мы будет создавать обьект класса view, то будем заполнять все эти свойства,
 текущими значениями вида и шаблона.
 Заведем в index.php константу для нашего шаблона - define('LAYOUT', 'default');//default template
-public function __construct($route, $layout = '', $view = '' ) {
-        $this->route = $route;
-        $this->layout = $layout ?: LAYOUT; - если у нас layout был передан, то используем его, инасче используем константу LAYOUT 
-        $this->view = $view;
-    }
+    public function __construct($route, $layout = '', $view = '' ) {
+            $this->route = $route;
+            $this->layout = $layout ?: LAYOUT; - если у нас layout был передан, то используем его, иначе используем константу LAYOUT 
+            $this->view = $view;
+        }
 
 И понадобится метод render - мы его будем вызывать автоматом и в нем будем подключать вид,
 шаблон и определять переменные вида и шаблона, которые,пользователь передает из action контроллера
+    public function render() {
+        $file_view = APP . "/views/{$this->route['controller']}/{$this->view}.php";
+        if (is_file($file_view)) {
+            require_once $file_view;
+        } else {
+            echo "<p>Не найден вид<b>$file_view</b></p>";
+        }
+    }
+Нам необходимо в контроллере создать обьект вида и вызвать его метод render. Допишем 
+    public function __construct($route) {
+        $this->route = $route;
+        $this->view = $route['action'];
+    }
+    
+     public function getView() {
+        $vObj = new View($this->route, $this->layout, $this->view);
+        $vObj->render();
+    }
+Подключим в dispatch -  $cObj->getView();
 
+Создадим некий общий класс в app/controllers - App.php отнаследуемся от базового контроллера
+Controller
+    namespace app\controllers;
 
+    use vendor\core\base\Controller;
+    class App extends Controller{
+        //put your code here
+    }
+Теперь каждый класс будем наследовать от класса App
 
+Нам надо чтобы вид не подключался раньше шаблона, и тем более чтобы он не выводился, до тех пор пока мы этого не захотим.
+Подключим возможности буферизации, которая фактически, все что идет после нее буферизирует, т.е.
+складывает в буфер обмена, не выводя при этом на экран.
+Заведем переменную и положим туда все, что находится в буфере обмена - $content = ob_get_clean();
+которая очищает буфер обмена и складывает в $content
+Теперь мы можем подключать наш шаблон, а внутри шаблона использовать переменную $content с видом 
+в нужном месте нашего шаблона.
+Шаблон подключаем, либо тот, который укажет пользователь на уровне контроллера и экшена или
+если он не указал, тогда мы используем дефолтный шаблон, который лежит у нас в константе LAYOUT
+И проверим, если у нас существует такой файл layuout, тогда мы его подключаем
+Выводится сообщение не найден шаблон, давайте его найдем.
+В папке views создадим папку layouts и в ней default.php
+В шаблон подключим bootstrap, скачаем его с офф.сайта. Переименуем в bootstrap. И закинем в папку 
+public
+В default.php вставим шаблон bootstrap
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>DEFAULT</title>
+
+        <link href="/public/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+          <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+          <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+        <![endif]-->
+      </head>
+      <body>
+        <h1>Hello, world!</h1>
+        <?= $content?> - подключим переменную
+
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="/public/bootstrap/js/bootstrap.min.js"></script>
+      </body>
+    </html>
+
+Все теперь подключается по умолчанию, шаблон и вид.
+Сделаем проверку во view - 
+ public function __construct($route, $layout = '', $view = '' ) {
+        $this->route = $route;
+        $this->layout = $layout ?: LAYOUT;
+        $this->view = $view;
+        var_dump($this->layout); 
+        var_dump($this->view); 
+    }
+Посмотрим, что там находится. Попробуем передать другой шаблон. Для этого идем в main 
+    class Main extends App{
+        public function indexAction() {
+            $this->layout = 'main';
+            $this->view = 'test';
+         }
+}
+Шаблон main мы успешно переопределили. Это мы сделали на уровне action. Теперь сделаем
+на уровне всего класса.
+    class Main extends App{
+        public $layout = 'main';
+        public function indexAction() {
+    //       $this->layout = 'main';
+    //       $this->view = 'test';
+        }
+    }
+Чтобы, убедиться, что все работает. создадим вид test.php во views/Main
+В views/layouts создадим шаблон main.php
+С default возьмем всю разметку вставим ее в main
+title перепишем в main -  <title>MAIN</title>
+Нужно дать пользователю вообще не подключать шаблоны
+Пропишем - 
+    public function indexAction() {
+            $this->layout = false;
+    //       $this->layout = 'main';
+    //       $this->view = 'test';
+        } 
+Чтобы получить данные без оформления. без шаблона и вида. И, чтобы это заработало, добавим 
+условие во view
+    if ($layout === false) {
+            $this->layout = false;
+        } else {
+            $this->layout = $layout ?: LAYOUT;
+        }
+И когда рендерим, добавим тоже условие во view 
+    if(false !== $this->layout){
+            $file_layout = APP . "/views/layouts/{$this->layout}.php";
+            if(is_file($file_layout)) {
+                require $file_layout;
+            } else {
+                echo "<p>Не найден шаблон <b>$file_layout</b></p>";
+            }
+        }
+В main index.php и test.php напишем - <code><? = __FILE__?></code>
