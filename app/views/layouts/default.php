@@ -7,6 +7,7 @@
     <title>DEFAULT</title>
 
     <link href="/public/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="/public/css/main.css" rel="stylesheet">
     
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>

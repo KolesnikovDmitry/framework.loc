@@ -633,3 +633,31 @@ title перепишем в main -  <title>MAIN</title>
             }
         }
 В main index.php и test.php напишем - <code><? = __FILE__?></code>
+Напишем специальный метод в контроллере set, который будет принимать некие параметры
+Определим свойство -
+    /**
+     * пользовательские данные
+     * @var array
+     */
+    public $vars = [];
+Остается только передать наши пользовательские данные в вид. Для этого передаем в render в 
+контроллере
+     public function getView() {
+        $vObj = new View($this->route, $this->layout, $this->view);
+        $vObj->render($this->vars);
+                
+    }
+И в методе render view этот метод мы должны принять. И сразу их продебажим
+ public function render(array $vars) {
+        debug($vars);
+Передадим данные в виде массива в $this->set(['name' => $name, 'hi'=> 'Hello']); 
+Эти данные доступны только в методе render. Нам надо сделать доступными для вида и шаблона,
+использовав функцию exctract(которая распарсивает массив и создает одноименные переменные)
+Перепишем в main -
+    $name = "Ande";
+        $hi = "hello";
+        $colors = [
+          $white = "Белый",
+          $black = "Черный",
+        ];
+        $this->set(compact('name', 'hi', 'colors'));

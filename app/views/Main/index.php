@@ -1,1 +1,4 @@
 <code><?= __FILE__?></code>
+<?= $name ?>
+<?= $hi ?>
+<?= $color[1] ?>
