@@ -7,6 +7,6 @@ use vendor\core\base\Controller;
  * Description of App
  *
  */
-class App extends Controller{
+class AppController extends Controller{
     //put your code here
 }

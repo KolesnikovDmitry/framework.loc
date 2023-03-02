@@ -661,3 +661,127 @@ title перепишем в main -  <title>MAIN</title>
           $black = "Черный",
         ];
         $this->set(compact('name', 'hi', 'colors'));
+
+
+
+Урок 5. Модели и работа с БД.
+Переименуем контроллеры в AppController, MainController, PageController, PostsController,
+PostsNewController и  изменим в них код например:
+    class MainController extends AppController
+И в Routere добавим постфикс Controller
+    $controller = 'app\controllers\\' . self::$route['controller'] . "Controller";
+Создадим БД в phpmyadmin - framework. Также нам потребуется хранить где-то настройки подключения к БД
+Будем использовать PDO. Созадим в корне папку config и в ней config_db.php(это будет обычный массив,который мы
+и будем возвращать)
+    Сделаем подключение:
+        return [
+            'dsn' => 'mysql:host=localhost;dbname=framework;charset=utf-8',
+            'user' => 'root',
+            'pass' => '',
+        ];
+Создадим в core класс Db
+И в папке base создадим класс Model. И создадим файл в приложении, первую модель, которая будет
+совпадать с именем контроллера - Main.php
+В классе DB обычно подключают Singletone. Создается защищенное свойство (protected/private)
+и создается защищенный конструктор, с тем чтобы невозможно было создать обьект данного класса.
+Далее создается публичный статический метод, который будет проверять создан ли обьект данного класса,
+или нет. Если создан вернет, если не создан, создаст и затем вернет.
+    class DB {
+    
+        protected $pdo;
+        protected static $instance;
+
+        protected function __construct() {
+            $db = require ROOT . '/config/config_db.php';
+            $this->pdo = new \PDO($db['dsn'],$db['user'],$db['pass']);
+        }
+
+        public static function instance() {
+            if (self::$instance === null) {
+                self::$instance = new self;
+            }
+        }
+        return self::$inststance;
+    }
+Далее на потребуются два низкоуровневых метода, которые в дальнейшем будут использоваться 
+нашей моделью для выполнения запросов.
+     public function execute($sql) {
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute();
+    }
+Метод execute будет нужен, когда нам будет нужно выполнить просто sql- запрос и данные из базы данных
+нам не нужны. Например, создать или изменить таблицу в БД. Нам важен ответ, либо truе, либо
+false. 
+Следующий метод query - это тоже будет sql - запрос. Он тоже будет его готовить, выполнять,
+но еще и возвращать данные. Этот метод необходим для запросов, типа select, которые осуществляют
+выборку данных из базы.
+    public function query($sql) {
+        $stmt = $this->pdo->prepare($sql);
+        $res = $stmt->execute();
+    }
+И проверим , что у нас находится в переменной $res. Если там не false, значит там есть 
+какие-то данные. Если false, значит там ошибка, или некорректный запрос пустой, чтобы не вернулось
+false просто вернем пустой массив.
+     public function query($sql) {
+        $stmt = $this->pdo->prepare($sql);
+        $res = $stmt->execute();
+        if($res !== false) {
+            return $stmt->fetchAll();
+        }
+        return [];
+    }
+}
+
+Для модели нам понадобится то же свойство, в котором мы будем хранить подключение к БД
+    use vendor\core\Db;
+    abstract class Model {
+
+        protected $pdo;
+        protected $table;
+
+        public function __construct() {
+            $this->pdo = Db::instance();
+        }
+    }
+Напишем пару методов в Model.php 
+Первый метод query, который по-сути будет оберткой над execute класса Db;
+Данный метод нужен, чтобы выполнить sql-запрос и выполнить, либо true, либо false.
+    public function query($sql) {
+        return $this->pdo->execute();
+    }
+И второй метод, который возвращает все данные из таблицы. В данном случае из той таблицы, с 
+которой работает модель.
+    public function findAll() {
+        $sql = "SELECT * FROM {$this->table}";
+        return $this->pdo->query($sql);
+    }
+Будем наследовать класс модели в Main.php. Необходимо определить свойство таблицы
+public $table = 'posts'; На главной странице будет выводиться таблица posts
+И протестируем её. Нам небходимо создать обьект модели Main, для того чтобы нам 
+были доступны все его методы(query и findAll)
+Запишем и  проверим в Main 
+     public function indexAction() {
+        $model = new Main;
+        $res = $model->query("CREATE TABLE Staff (
+                                id INT,
+                                name VARCHAR(255) NOT NULL,
+                                position VARCHAR(30),
+                                birthday Date); ");
+        var_dump($res);
+        $title = "PAGE_TITLE";
+        $this->set(compact('title'));
+    }
+Теперь протестируем метод findAll, который просто выбирает все данные из таблицы
+В MainController напишем:
+     $posts = $model->findAll();
+        debug($posts);
+Выводится массив. Но нам нужно, чтобы выводился только ассоциативный массив
+Когда работают с методом fetchAll в классе Db, подают один и тот же параметр
+ return $stmt->fetchAll(\PDO::FETCH_ASSOC); И получаем только ассоциативный массив
+Подадим этот параметр один раз и в момент соединения с БД
+Сформируем переменную для показа ошибок в Db
+    $options = [
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+        ];
+Теперь эти данные мы можем передавать в вид и в виде уже их выводить

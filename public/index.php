@@ -3,30 +3,30 @@ error_reporting(-1);
 
 use vendor\core\Router;
 
-$query = rtrim(filter_input(INPUT_SERVER, 'QUERY_STRING'), '/');
+$query = rtrim($_SERVER['QUERY_STRING'], '/');
+define('WWW', __DIR__);
+define('CORE', dirname(__DIR__) . '/vendor/core');
+define('ROOT', dirname(__DIR__));
+define('APP', dirname(__DIR__) . '/app');
+define('LAYOUT', 'default');
 
-define('WWW', __DIR__ ); //public
-define('CORE', dirname(__DIR__). 'vendor/core'); //core
-define('ROOTE', dirname(__DIR__)); //framework.loc
-define('APP', dirname(__DIR__) . '/app'); //app
-define('LAYOUT', 'default');//default template
-
-
-require_once '../vendor/libs/function.php';
+require '../vendor/libs/functions.php';
 
 spl_autoload_register(function($class){
-    $file = ROOTE . '/' . str_replace('\\', '/', $class) . ".php";
+    $file = ROOT . '/' . str_replace('\\', '/', $class) . '.php';
     if(is_file($file)){
         require_once $file;
     }
 });
 
-Router::add('^page/(?P<action>[a-z-]+)/(?P<alias>[a-z-]+)$',['controller' => 'Page']);
-Router::add('^page/(?P<alias>[a-z-]+)$',['controller' => 'Page', 'action' => 'view']);
+Router::add('^page/(?P<action>[a-z-]+)/(?P<alias>[a-z-]+)$', ['controller' => 'Page']);
+Router::add('^page/(?P<alias>[a-z-]+)$', ['controller' => 'Page', 'action' => 'view']);
 
-//default rules
-Router::add('^$',['controller' => 'Main', 'action'=>'index']);
+// defaults routs
+Router::add('^$', ['controller' => 'Main', 'action' => 'index']);
 Router::add('^(?P<controller>[a-z-]+)/?(?P<action>[a-z-]+)?$');
 
+
 Router::dispatch($query);
+
 
