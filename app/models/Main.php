@@ -6,5 +6,10 @@ use vendor\core\base\Model;
 
 class Main extends Model{
     
-    public $table = 'posts';
+    public function __construct() {
+        parent::__construct();
+        $this->table = "posts";
+    }
+    
+
 }

@@ -9,9 +9,9 @@ class MainController extends AppController{
     
     public function indexAction() {
         $model = new Main;
-        $posts = $model->findAll();
-        $posts2 = $model->findAll();
+        $posts = \R::findAll('posts');
+        $menu = \R::findAll('category'); 
         $title = "PAGE_TITLE";
-        $this->set(compact('title', 'posts'));
+        $this->set(compact('title', 'posts', 'menu'));
     }
 }

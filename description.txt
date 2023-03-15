@@ -830,3 +830,92 @@ public static $countSql = 0;
 Теперь мы можем их вывести, например в шаблоне default
     <?= debug(vendor\core\Db::$countSql)?>
     <?= debug(vendor\core\Db::$queries)?>
+
+Напишем метод findOne(), который будет получать одну запись, в параметры добавим id и field
+Добавим также свойство protected $primary_key = 'id';
+Параметр field будет указывать по какому полю мы будем выбирать данные и данное поле будет необязательным
+И проверяем, если у нас поле field передано, то мы будем брать его, если не передано будем брать
+свойство $primary_key, либо то что мы с вами определим в нашей модели
+Формируем sql запрос $sql = "SELECT * FROM {$this->table} WHERE $field = ? LIMIT 1";
+Выбираем из таблицы текущей модели, где наше поле field равняется id 
+$sql = "SELECT * FROM {$this->table} WHERE $field = ? LIMIT 1";
+     public function findOne($id, $field = '') {
+       $field = $field ?: $this->primary_key;
+       $sql = "SELECT * FROM {$this->table} WHERE $field = ? LIMIT 1";
+       return $this->pdo->query($sql, [$id]);
+    }
+Но например мы хотим выбирать записи не по полю id, а по полю category_id
+В этом случае мы просто переопредим свойство primary_key
+public $primary_key = 'category_id';
+Также мы можем в параметре field указать любое другое поле
+$posts = $model->findOne('Редко используемые селекторы JQuery', 'title');
+Напишем следующий метод findBySql, который позволяет выбрать что-либо из базы данных по произвольному
+sql - запросу
+    public function findBySql($sql, $params = []) {
+        return $this->pdo->query($sql, $params);
+    }
+И проверим 
+    $data = $model->findBySql("SELECT * FROM posts ORDER BY id DESC LIMIT 2");
+    debug($data);
+Или 
+    $data = $model->findBySql("SELECT * FROM {$model->table} WHERE title LIKE ?", ['%то%']);
+И третьий метод findLike с параметрами str, field, table=''
+Если у нас передана таблица, значит мы возьмем ее, в противном случае мы возьмем таблицу модели
+    public function findLike($str, $field, $table = "") {
+        $table = $table ?: $this->table;
+        $sql = "SELECT * FROM $table WHERE $field LIKE ?";
+        return $this->pdo->query($sql, ['%' . $str . '%']);
+    }
+И проверим -  $data = $model->findLike('то', 'title');
+
+
+Урок 8. Подключение ORM RedBeanPhp
+В классе DB закомментируем подключение к БД
+    $options = [
+            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+        ];
+        $this->pdo = new \PDO($db['dsn'], $db['user'], $db['pass'],$options);
+
+ И вызовы sgl 
+       public function execute($sql, $params = []) {
+//        self::$countSql++;
+//        self::$queries[] = $sql;
+//        $stmt = $this->pdo->prepare($sql);
+//        return $stmt->execute($params);
+//    }
+//    
+//    public function query($sql, $params = []) {
+//        self::$countSql++;
+//        self::$queries[] = $sql;
+//        $stmt = $this->pdo->prepare($sql);
+//        $res = $stmt->execute($params);
+//        if($res !== false){
+//            return $stmt->fetchAll();
+//        }
+//        return [];
+//    }
+  Теперь подключим redbeanphp и вставим в конструктор Db.php
+  protected function __construct() {
+        $db = require ROOT . '/config/config_db.php';
+        require 'rb.php';
+        R::setup( $db['dsn'], $db['user'], $db['pass']);
+        //R::freeze(true);
+        R::fancyDebug(TRUE);
+    }
+    
+Файлик rb.php скопируем и добавим в папку libs
+И сделаем константу LIBS 
+define('LIBS', ROOT . '/vendor/libs');
+В MainController.php выведем страницу постов и страницу категорий
+$posts = \R::findAll('posts'); 
+$menu = \R::findAll('category'); 
+$this->set(compact('title', 'posts', 'menu'));
+Идем в вид views/main/index. Проверим, что у нас выводится список категорий,
+<?php debug($menu);?>
+И выведем красиво через bootstrap
+    <ul class="nav nav-pills">
+    <?php foreach ($menu as $item): ?>
+        <li><a href="category/<?=$item['id']?>"><?= $item['title']?></a></li>
+    <?php endforeach; ?>
+    </ul>
