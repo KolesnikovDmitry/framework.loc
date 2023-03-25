@@ -10,6 +10,7 @@ define('ROOT', dirname(__DIR__));
 define('CORE', ROOT . '/vendor/core');
 define('LIBS', ROOT . '/vendor/libs');
 define('APP',  ROOT . '/app');
+define('CACHE',  ROOT . '/tmp/cache');
 define('LAYOUT', 'default');
 
 require '../vendor/libs/functions.php';
@@ -20,6 +21,8 @@ spl_autoload_register(function($class){
         require_once $file;
     }
 });
+
+new vendor\core\App;
 
 Router::add('^page/(?P<action>[a-z-]+)/(?P<alias>[a-z-]+)$', ['controller' => 'Page']);
 Router::add('^page/(?P<alias>[a-z-]+)$', ['controller' => 'Page', 'action' => 'view']);

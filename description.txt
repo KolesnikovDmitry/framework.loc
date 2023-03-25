@@ -919,3 +919,122 @@ $this->set(compact('title', 'posts', 'menu'));
         <li><a href="category/<?=$item['id']?>"><?= $item['title']?></a></li>
     <?php endforeach; ?>
     </ul>
+Вынесем меню в AppController.
+Вставим в default.php 
+        <div class="container">
+          <ul class="nav nav-pills">
+            <?php foreach ($menu as $item): ?>
+                <li><a href="category/<?=$item['id']?>"><?= $item['title']?></a></li>
+            <?php endforeach; ?>
+          </ul>
+            <?= $content?>
+            <?php //debug(vendor\core\Db::$countSql)?>
+            <?php //debug(vendor\core\Db::$queries)?>
+       </div>
+    Заведем в AppController.php конструктор , который будет наследоваться от родительского
+Controllera. Добавим обьект модели, без нее не будет работать. И выведем из базы меню
+кетегорий
+    public $menu;
+    
+    public function __construct($route) {
+        parent::__construct($route);
+        new \app\models\Main;
+        $this->menu = \R::findAll('category'); 
+    }
+
+В MainController напишем: $menu = $this->menu;
+
+Помимо общего контроллера, используется еще вариант компонентов или виджетов. Создается компонент
+(виджет)- это законченный модуль, в котором уже например получается меню.
+
+Урок 9. Ответы на вопросы
+В странице default напишем код, который позволит не выводить на какой-то странице
+список меню
+    <?php if (!empty($menu)): ?>
+          <ul class="nav nav-pills">
+            <?php foreach ($menu as $item): ?>
+                <li><a href="category/<?=$item['id']?>"><?= $item['title']?></a></li>
+            <?php endforeach; ?>
+          </ul>
+     <?php endif; ?>
+В AppControllere создадим метод, который будет заполнять метаданные
+Создадим публичное свойство public $meta = [];
+     protected function setMeta($title = '', $desc = '', $keywords = '') {
+        $this->meta['title'] = $title;
+        $this->meta['desc'] = $desc;
+        $this->meta['keywords'] = $keywords;
+    }
+В MainControllere напишем :
+    $this->setMeta('Главная', 'описание страницы', 'ключевые слова');
+    $meta = $this->meta;
+В defautl выведем их
+    <title><?= $meta['title'] ?></title>
+    <meta name="description" content="<?= $meta['desc'] ?>">
+    <meta name="keywords" content="<?= $meta['keywords'] ?>">
+
+
+Урок 10. Шаблон реестр.
+Работа с компонентами. 
+создадим класс php в vendor/libs - Cache.php. И для примера создадим класс Test.php
+там же. Создадим в папке config php-файл config.php
+ в нем создадим пустой массив $config = []; и в нем будут содержаться какие-либо настройки,
+компоненты 
+    $config = [
+    'components' => [
+      'cache' => 'vendor\libs\Cache',
+      'test' => 'vendor\libs\Test',
+    ]
+  ];
+  
+  return $config;
+Для теста создадим в папке public, папку test. Там создадим файл index.php, но внего напишем класс
+Registry. И создадим еще одну папку, в папке test- classes в тестовых целях. В ней создадим
+класс php Cache. В пространстве имен запишем classes. И создадим класс Test
+    namespace classes;
+
+
+    class Test {
+        public function go() {
+            echo "Поехали!";
+        }
+    }
+Класс Registry
+    
+        class Registry {
+
+            public static $objects = []; контейнер для обьектов 
+
+            protected static $instance;
+
+            protected function __construct() {
+                $config  = require ROOT . '/config/config.php';
+                foreach ($config['components'] as $name => $component) {
+                    self::$objects[$name] = new $component;
+                }
+            } 
+
+            public static function instance() {
+              if (self::$instance === null) {
+                  self::$instance = new self;
+              }
+              return self::$instance;
+          }
+
+          public function __get($name) {
+              if (is_object(self::$objects[$name])) {
+                  return self::$objects[$name];
+              }
+          }
+
+          public function __set($name, $object) {
+              if (!isset(self::$objects[$name])) {
+                  self::$objects[$name] = new $object;
+              }
+          }
+
+          public function getList() {
+               echo '<pre>';
+               var_dump(self::$objects);
+               echo '</pre>';
+          }
+        }
