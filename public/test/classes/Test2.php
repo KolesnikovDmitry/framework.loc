@@ -2,7 +2,7 @@
 
 
 
-namespace public\test\classes;
+namespace classes;
 
  
   class Test2 {

@@ -1,64 +1,66 @@
 <?php
 
-  $config = [
+$config = [
     'components' => [
-      'cache' => 'vendor\libs\Cache',
-      'test' => 'vendor\libs\Test',
+        'cache' => 'classes\Cache',
+        'test' => 'classes\Test',
     ],
-  ];
-  
-  return $config;
-  
-  spl_autoload_register(function($class){
-    $file =  str_replace('\\', '/', $class) . '.php';
+];
+
+spl_autoload_register(function($class){
+    $file = str_replace('\\', '/', $class) . '.php';
     if(is_file($file)){
         require_once $file;
     }
 });
 
-  class Registry {
-      
-      public static $objects = [];
-      
-      protected static $instance;
-      
-      protected function __construct() {
-          global $config;
-          foreach ($config['components'] as $name => $component) {
-              self::$objects[$name] = new $component;
-          }
-      } 
-      
-      public static function instance() {
-        if (self::$instance === null) {
+/**
+ * Description of index
+ *
+ */
+class Registry {
+    
+    public static $objects = [];
+    
+    protected static $instance;
+    
+    protected function __construct() {
+        global $config;
+        foreach($config['components'] as $name => $component){
+            self::$objects[$name] = new $component;
+        }
+    }
+    
+    public static function instance() {
+        if(self::$instance === null){
             self::$instance = new self;
         }
         return self::$instance;
     }
     
     public function __get($name) {
-        if (is_object(self::$objects[$name])) {
+        if(is_object(self::$objects[$name])){
             return self::$objects[$name];
         }
     }
-
+    
     public function __set($name, $object) {
-        if (!isset(self::$objects[$name])) {
+        if(!isset(self::$objects[$name])){
             self::$objects[$name] = new $object;
         }
     }
-
-    public function getList() {
+    
+    public function getList(){
         echo '<pre>';
         var_dump(self::$objects);
         echo '</pre>';
     }
-  }
-  
-  $app = Registry::instance();
-  $app->getList();
-//  $app->cache->go();
-//  $app->test2 = "classes\Test2";
-//  $app->getList();
-  $app->test->go();
-  
+    
+}
+
+//$app = Registry::instance();
+//$app->getList();
+//$app->test->go();
+//$app->test2 = 'classes\Test2';
+//$app->getList();
+//$app->test2->hello();
